@@ -1,3 +1,4 @@
+
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { APIError } from "../utils/ApiErrors.js";
 import { User } from "../models/user.model.js"
@@ -25,24 +26,28 @@ const registerUser = asyncHandler( async (req, res) =>{
     //     throw new APIError(400, "Full Name is required")
     //  }
 
-    if (
-        [fullname, email, username, password].some( () => 
-        field?.trim() === "")
-    ){
-        throw new APIError(400, "All fields are compulsory")
-    }
+ if ([fullname, email, username, password].some(field => !field || field.trim() === "")) {
+    throw new APIError(400, "All fields are compulsory");
+}
 
-    const existedUser  = User.findOne({
+    const existedUser  = await User.findOne({
         $or: [{username},{email}]
     })
 
-    if (existedUser){
+     if (existedUser) {
         throw new APIError(409, "User with email or username already exists")
     }
+    //console.log(req.files);
 
-    const avatarLocalPath = req.files?.avatar[0]?.path; //localpath
-    //reference the "const"
-    const coverImageLocalPath = req.files?.coverImage[0]?.path;
+    const avatarLocalPath = req.files?.avatar[0]?.path;
+    //const coverImageLocalPath = req.files?.coverImage[0]?.path;
+
+    let coverImageLocalPath;
+    if (req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length>0) {
+        coverImageLocalPath = req.files.coverImage[0].path
+        
+    } 
+
 
     if (!avatarLocalPath) {
         throw new APIError(400, "Avatar is required");
@@ -84,3 +89,4 @@ const registerUser = asyncHandler( async (req, res) =>{
 
 
 export {registerUser}
+
