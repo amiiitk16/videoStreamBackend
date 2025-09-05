@@ -4,6 +4,7 @@ import { APIError } from "../utils/ApiErrors.js";
 import { User } from "../models/user.model.js"
 import { uploadOnCloudinary } from "../utils/cloudnary.js"
 import { ApiResponse } from "../utils/ApiResponse.js"
+import jwt from "jsonwebtoken";
 
 
 
@@ -121,7 +122,7 @@ const loginUser = asyncHandler(async (req, res) => {
     // send cookie
 
     const { email, username, password } = req.body
-    console.log(email);
+    console.log("Login attempt - email:", email, "username:", username);
 
     // 🔥 CHANGED: earlier only checked for username/email, 
     // now also ensure password is present
@@ -200,6 +201,32 @@ const logOutUser = asyncHandler(async(req,res) =>{
 })
 
 
+
+const refreshAccessToken = asyncHandler(async(req, res) =>{
+   const incomingRefreshToken =  req.cookie.refreshToken || req.body.refreshToken
+
+    if (incomingRefreshToken) {
+        throw new APIError(401,"Unauthorized req");
+        
+        
+    }
+    const decodedToken = jwt.verify(
+        incomingRefreshToken,
+        process.env.REFRESH_TOKEN_SECRET
+    )
+
+    const user = await User.findById(decodedToken?._id)
+    if (!user) {
+        throw new APIError(401,"invalid req token");
+        
+        
+    }
+    
+
+
+
+
+})
 
 
 
